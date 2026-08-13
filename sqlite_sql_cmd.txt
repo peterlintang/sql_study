@@ -5,6 +5,7 @@ constraint: 	not null
 		check ()
 		default value
 		index # create index id_name on table_name(col);
+		auto-increment 
 datatype: TINYINT、SMALLINT、INT、BIGINT
 	FLOAT、DOUBLE、REAL
 	DECIMAL、NUMERIC
@@ -17,7 +18,7 @@ limit num: limit display rows
 select * from table_name limit 2;
 as: alia name
 select * from table_name as alia_name;
-condition: in(, ,); between v1 and v2; not; and; or; like; % _ []
+condition: in(, ,); between v1 and v2; not; and; or; like; % _ []; is null; is not null
 
 create table table_name(col1 int, col2 varchar(255), col3 varchar(255));
 create table table_name(col1 int constraint, col2 varchar(255) constraint, col3 varchar(255) constraint);
@@ -66,3 +67,10 @@ ALTER TABLE table_name ADD column_name datatype
 ALTER TABLE table_name DROP COLUMN column_name
 ALTER TABLE table_name ALTER COLUMN column_name datatype
 ALTER TABLE table_name MODIFY COLUMN column_name datatype
+
+create view my_view as select * from person where id > 2;
+select * from my_view;
+drop view if exists my_view;
+
+select product, units * price from test_6;
+select product, price * ifnull(units,0) from test_6; # or replace ifnull with COALESCE
