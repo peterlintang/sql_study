@@ -1,0 +1,68 @@
+constraint: 	not null
+		unique
+		primary key
+		foreign key (col) references table_name(col)
+		check ()
+		default value
+		index # create index id_name on table_name(col);
+datatype: TINYINT、SMALLINT、INT、BIGINT
+	FLOAT、DOUBLE、REAL
+	DECIMAL、NUMERIC
+	CHAR
+	VARCHAR、VARCHAR2
+	TEXT、CLOB
+	DATE
+	TIME
+limit num: limit display rows
+select * from table_name limit 2;
+as: alia name
+select * from table_name as alia_name;
+condition: in(, ,); between v1 and v2; not; and; or; like; % _ []
+
+create table table_name(col1 int, col2 varchar(255), col3 varchar(255));
+create table table_name(col1 int constraint, col2 varchar(255) constraint, col3 varchar(255) constraint);
+create table test_1 (id int not null unique, name varchar(255) not null);
+CREATE TABLE test_2 (id int not null unique, value int not null unique);
+create table test_3 (id int not null, value int not null, primary key(id));
+create table test_3 (id int not null, value int not null primary key);
+create table test_4(id int not null check(id > 0), value int not null);
+create table test_5(id int not null, value decimal(10,2) default 2.0);
+create table test_5(id int not null, hiredate text default (datetime('now')), value decimal(10,2) default 2.0);
+create table new_person(id int primary key, name varchar(255) not null);
+create table new_orders (o_id int not null, orderno int not null, person_id int not null, foreign key(person_id) references new_person(id)); # sqlite3 need to set PRAGMA foreign_keys = ON;
+insert into table_name (col1, col2, col3) values(v1, v2, v3);
+select * from table_name;
+select * from table_name order by col1;
+select distinct * from table_name order by col1;
+select id from table_name where id = value;
+delete from table_name where id = value;
+update table_name set col1 = v1, col2 = v2 where col1 = ;
+update table_name set col1 = , col2 = , ... where condition;
+
+(inner can replace with left, right, full, left outer, right outer, full outer)
+select col1, col2, ... from table_name1 inner join table_name2 on condition;
+select * from customers inner join orders on customers.customerid=orders.customerid;
+select customers.name, orders.orderid from customers inner join orders on customers.customerid=orders.customerid;
+
+select * from orders union select * from person;
+select * from orders union all select * from person;
+select * from orders union all select * from person where id > 4 order by id;
+
+create table test_1 as select * from person;
+create table test_1 as select * from person where id > 3;
+
+insert into account select * from person where id > 3;
+insert into account (value) select addr from person where id = 2;
+
+CREATE INDEX PIndex ON Persons (LastName, FirstName)
+CREATE UNIQUE INDEX PIndex ON Persons (LastName, FirstName)
+
+DROP INDEX [IF EXISTS] index_name ON TABLE_NAME; # sqlite dont need on table_name
+DROP TABLE [IF EXISTS] TABLE_NAME;
+DROP DATABASE [IF EXISTS] database_name;
+TRUNCATE TABLE TABLE_NAME;
+
+ALTER TABLE table_name ADD column_name datatype
+ALTER TABLE table_name DROP COLUMN column_name
+ALTER TABLE table_name ALTER COLUMN column_name datatype
+ALTER TABLE table_name MODIFY COLUMN column_name datatype
