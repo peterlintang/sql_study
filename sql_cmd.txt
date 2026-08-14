@@ -74,3 +74,23 @@ drop view if exists my_view;
 
 select product, units * price from test_6;
 select product, price * ifnull(units,0) from test_6; # or replace ifnull with COALESCE
+
+avg
+count
+first	(almost not support)
+last	(almost not support)
+max
+min
+sum
+group by
+having
+exists
+round
+len
+length
+substr
+mid
+lcase
+lower
+ucase
+upper
