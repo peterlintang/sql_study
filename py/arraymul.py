@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # 1. 定义长方形的 4 个原始顶点 (闭合曲线，所以重复第一个点)
-x_orig = np.array([0, 1, 1, 0, 0])
-y_orig = np.array([0, 0, 3, 3, 0])
+x_orig = np.array([0, 0, 1, 1, 1, 0, 0])
+y_orig = np.array([0, -1,-1,0, 3, 3, 0])
 orig_coords = np.vstack((x_orig, y_orig)) # 组合成 2x5 的矩阵
 
 # 2. 定义空间变换矩阵 A
