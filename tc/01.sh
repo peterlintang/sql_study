@@ -13,3 +13,7 @@ sudo tc filter add dev ens33 protocol ip parent 1:0 prio 1 u32 match ip dport 80
 #tc -s class show dev ens33
 #删除gen队列
 #sudo tc qdisc del dev ens33 root
+
+# 限制 eth0 接口的出口带宽为 10Mbit，允许突发 32kb，最大延迟 50ms
+#sudo tc qdisc add dev eth0 root tbf rate 10mbit burst 32kb latency 50ms
+
