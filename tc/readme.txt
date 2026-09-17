@@ -81,3 +81,97 @@ U32 过滤器匹配参数
 match	匹配数据包特定偏移量的值。格式：match <value>/<mask> at <offset>	match ip dport 80 0xffff
 flowid	匹配成功后，将数据包导向指定的 class。	flowid 1:10
 action	执行特定动作，如 drop (丢弃), mirred (镜像/重定向)。	action drop
+
+
+
+
+
+
+/*******************************************/
+
+1. 基本语法结构
+bash
+tc [ OPTIONS ] object COMMAND [ dev DEV ] [ PARAMS ]
+‌OPTIONS‌: 全局选项，控制命令行为（如显示统计信息）。
+‌object‌: 操作对象，主要为 qdisc、class、filter。
+‌COMMAND‌: 对对象执行的操作，如 add、delete、show。
+‌dev DEV‌: 指定网络接口设备名称（如 eth0, ens33）。
+‌PARAMS‌: 特定对象和命令所需的参数（如带宽速率、句柄 ID、过滤器规则等）。
+2. 三大核心对象的命令格式
+A. qdisc (排队规则)
+用于定义数据包的排队、调度和丢弃策略。
+
+bash
+tc qdisc [ add | change | replace | delete | show ] dev DEV [ parent qdisc-id | root ] [ handle qdisc-id ] qdisc_type [ parameters ]
+‌parent qdisc-id | root‌: 指定父节点。root 表示根队列；其他情况指定父 qdisc 的句柄（如 1:）。
+‌handle qdisc-id‌: 指定该 qdisc 的唯一标识符（如 1:0）。
+‌qdisc_type‌: 队列类型，如 htb, tbf, pfifo_fast, netem, ingress。
+‌parameters‌: 该类型特有的参数（如 rate, burst, latency）。
+‌示例：‌
+
+bash
+# 添加根 HTB 队列
+tc qdisc add dev eth0 root handle 1: htb default 10
+B. class (类别)
+仅在支持分类的 qdisc（如 HTB, CBQ）中使用，用于分层管理带宽。
+
+bash
+tc class [ add | change | replace | delete | show ] dev DEV parent qdisc-id classid class-id qdisc_type [ parameters ]
+‌parent qdisc-id‌: 父类的句柄（如 1:1）。
+‌classid class-id‌: 当前类的唯一标识（如 1:10）。
+‌parameters‌: 带宽参数，如 rate (保证带宽), ceil (最大带宽), prio (优先级)。
+‌示例：‌
+
+bash
+# 添加子类，保证10Mbit，最大100Mbit
+tc class add dev eth0 parent 1:1 classid 1:10 htb rate 10mbit ceil 100mbit prio 2
+C. filter (过滤器)
+用于匹配数据包特征并将其引导至特定的 class 或执行动作。
+
+bash
+tc filter [ add | change | replace | delete | show ] dev DEV [ parent qdisc-id | root ] protocol PROTO prio PRIO filter_type [ filter_params ] flowid class-id
+‌parent qdisc-id | root‌: 过滤器挂载的父节点。
+‌protocol PROTO‌: 匹配的协议，如 ip, ipv6, all。
+‌prio PRIO‌: 过滤器优先级，数值越小优先级越高。
+‌filter_type‌: 过滤器类型，如 u32, fw, flower, bpf。
+‌filter_params‌: 匹配条件（如 IP、端口、MAC）。
+‌flowid class-id‌: 匹配成功后指向的目标 Class ID。
+‌示例：‌
+
+bash
+# 匹配目标端口80的流量，导向类 1:10
+tc filter add dev eth0 protocol ip parent 1:0 prio 1 u32 match ip dport 80 0xffff flowid 1:10
+3. 常用全局选项 (OPTIONS)
+表格
+选项	说明
+-s	显示统计信息（如发送字节数、丢包数）。常与 show 连用。
+-d	显示详细信息。
+-r	显示原始数值，不进行单位换算。
+-b	从文件批量执行命令（如 tc -b config.txt）。
+-n	不解析主机名和端口名，直接显示数字。
+-j	以 JSON 格式输出。
+4. 完整实战示例
+以下是一个完整的 HTB 限速配置流程，展示了各部分格式的组合：
+
+bash
+# 1. 清除旧配置
+tc qdisc del dev eth0 root 2>/dev/null
+
+# 2. 添加根 qdisc (HTB)
+tc qdisc add dev eth0 root handle 1: htb default 10
+
+# 3. 添加根 class (总带宽 100Mbit)
+tc class add dev eth0 parent 1: classid 1:1 htb rate 100mbit ceil 100mbit
+
+# 4. 添加默认 class (未匹配流量，限速 10Mbit)
+tc class add dev eth0 parent 1:1 classid 1:10 htb rate 10mbit ceil 100mbit prio 2
+
+# 5. 添加高优先级 class (HTTP流量，限速 50Mbit)
+tc class add dev eth0 parent 1:1 classid 1:20 htb rate 50mbit ceil 100mbit prio 1
+
+# 6. 添加过滤器 (匹配端口 80 导向 1:20)
+tc filter add dev eth0 protocol ip parent 1:0 prio 1 u32 match ip dport 80 0xffff flowid 1:20
+注意事项
+‌顺序依赖‌：必须先创建父节点（qdisc 或 class），才能创建子节点或挂载过滤器。
+‌句柄格式‌：句柄通常格式为 Major:Minor（如 1:10）。根 qdisc 的 Major 号通常自定义，Minor 号为 0；Class 的 Major 号需与父 qdisc 一致。
+‌持久化‌：tc 配置重启后失效，建议将命令写入启动脚本或使用 tc -b 加载配置文件。
